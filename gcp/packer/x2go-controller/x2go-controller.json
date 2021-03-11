@@ -1,0 +1,28 @@
+{
+  "variables": {
+    "source_image_family": "var",
+    "machine_type": "var",
+    "zone": "var",
+    "project_id": "var",
+    "ssh_username": "var"
+  },
+  "builders": [
+    {
+      "type": "googlecompute",
+      "project_id": "tantrums-and-effusions",
+      "machine_type": "e2-standard-2",
+      "source_image": "centos-8-v20210217",
+      "zone": "us-west1-b",
+      "image_description": "OpenHPC X2Go Controller Image",
+      "image_name": "openhpc-x2go-controller-{{timestamp}}",
+      "disk_size": 170,
+      "disk_type": "pd-standard",
+      "ssh_username": "packer"
+    }
+  ],
+  "provisioners": [{
+    "type": "shell",
+    "script": "x2go-controller_packages.sh",
+    "execute_command": "chmod +x {{ .Path }}; sudo {{ .Vars }} {{ .Path }}"
+  }]
+}

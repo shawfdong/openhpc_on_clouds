@@ -1,0 +1,8 @@
+---
+v2:
+  metadata:
+    title: "OpenHPC Cluster"
+  login:
+    host: "ohpc-controller"
+  job:
+    adapter: "slurm"

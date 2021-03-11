@@ -1,0 +1,8 @@
+---
+v2:
+  metadata:
+    title: "PEARC Cluster"
+  login:
+    host: "ip-192-168-0-100"
+  job:
+    adapter: "slurm"

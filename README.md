@@ -1,1 +1,1 @@
-# openhpc_on_clouds
+# OpenHPC on Clouds

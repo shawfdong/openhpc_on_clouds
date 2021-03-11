@@ -1,0 +1,138 @@
+{% set _ = properties.update({
+    'project': env['project'],
+    'compute_node_prefix': properties["cluster_name"] ~ "-c",
+    }) %}
+{% set region =  '-'.join(properties['zone'].split('-')[:-1]) %}
+{% set network = properties["cluster_name"] ~ "-network" %}
+{% set subnet = properties["cluster_name"] ~ "-" ~ region %}
+
+resources:
+- name: {{network}}
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+
+- name: {{subnet}}
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.{{network}}.selfLink)
+    ipCidrRange: 192.168.0.0/16
+    region: {{region}}
+    privateIpGoogleAccess: {{ properties["private_google_access"]}}
+
+- name: {{properties["cluster_name"]}}-allow-ssh-http
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{network}}.selfLink)
+    sourceRanges: ["0.0.0.0/0"]
+    allowed:
+    - IPProtocol: TCP
+      ports: ["22"]
+    - IPProtocol: TCP
+      ports: ["80"]
+    - IPProtocol: ICMP
+
+- name: {{properties["cluster_name"]}}-allow-all-internal
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.{{network}}.selfLink)
+    sourceRanges: ["192.168.0.0/16"]
+    allowed:
+    - IPProtocol: TCP
+      ports: ["0-65535"]
+    - IPProtocol: UDP
+      ports: ["0-65535"]
+    - IPProtocol: ICMP
+
+- name: {{properties["cluster_name"]}}-controller
+  type: compute.v1.instance
+  properties:
+    zone: {{ properties["zone"] }}
+    machineType: https://www.googleapis.com/compute/v1/projects/{{ properties["project"] }}/zones/{{ properties["zone"] }}/machineTypes/{{ properties["controller_machine_type"] }}
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: https://www.googleapis.com/compute/v1/{{ properties["controller_image"] }}
+        diskType: https://www.googleapis.com/compute/v1/projects/{{ properties["project"] }}/zones/{{ properties["zone"] }}/diskTypes/{{ properties["controller_disk_type"] }}
+        diskSizeGb: {{ properties["controller_disk_size_gb"] }}
+    networkInterfaces:
+    - subnetwork: $(ref.{{subnet}}.selfLink)
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+    serviceAccounts:
+      - email: {{ properties["controller_service_account"] }}
+        scopes: {{ properties["controller_scopes"] }}    
+    tags:
+      items:
+        - x2go-controller
+    metadata:
+      items:
+        - key: startup-script
+          value: |
+            {{ imports["files/startup-controller.sh"]|indent(12) }}
+        - key: config
+          value: |
+            {{ properties|safe|tojson(2)|indent(12) }}
+        - key: slurm_resume
+          value: |
+            {{ imports["files/slurm-gcp-startup.sh"]|indent(12) }}
+        - key: slurm_suspend
+          value: |
+            {{ imports["files/slurm-gcp-shutdown.sh"]|indent(12) }}
+        - key: slurm_compute_startup
+          value: |
+            {{ imports["files/slurm-compute-startup.sh"]|indent(12) }}
+        - key: gcp_instance
+          value: |
+            {{ imports["files/gcp_instance.py"]|indent(12) }}
+        - key: VmDnsSetting
+          value: GlobalOnly
+        - key: slurm_conf
+          value: |
+            {{ imports["files/slurm.conf"]|indent(12) }}
+
+- name: {{properties["cluster_name"]}}-ood
+  type: compute.v1.instance
+  properties:
+    zone: {{ properties["zone"] }}
+    machineType: https://www.googleapis.com/compute/v1/projects/{{ properties["project"] }}/zones/{{ properties["zone"] }}/machineTypes/{{ properties["ood_machine_type"] }}
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: https://www.googleapis.com/compute/v1/{{ properties["ood_image"] }}
+        diskType: https://www.googleapis.com/compute/v1/projects/{{ properties["project"] }}/zones/{{ properties["zone"] }}/diskTypes/{{ properties["ood_disk_type"] }}
+        diskSizeGb: {{ properties["ood_disk_size_gb"] }}
+    networkInterfaces:
+    - subnetwork: $(ref.{{subnet}}.selfLink)
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+    serviceAccounts:
+      - email: {{ properties["ood_node_service_account"] }}
+        scopes: {{ properties["ood_node_scopes"] }}
+    tags:
+      items:
+        - ood-login
+    metadata:
+      items:
+        - key: startup-script
+          value: |
+            {{ imports["files/startup-ood.sh"]|indent(12) }}
+        - key: config
+          value: |
+            {{ properties|safe|tojson(2)|indent(12) }}
+        - key: ood_ohpc
+          value: |
+            {{ imports["files/ohpc.yml"]|indent(12) }}
+        - key: ood_portal
+          value: |
+            {{ imports["files/ood_portal.yml"]|indent(12) }}
+        - key: VmDnsSetting
+          value: GlobalOnly

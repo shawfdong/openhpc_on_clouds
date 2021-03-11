@@ -1,0 +1,16 @@
+# [START cluster_yaml]
+imports:
+- path: openhpc.jinja
+
+resources:
+- name: openhpc-cluster
+  type: openhpc.jinja
+  properties:
+    cluster_name            : ohpc
+    private_google_access   : False
+    zone                    : us-west1-b
+    controller_machine_type : e2-standard-2
+    controller_image        : projects/tantrums-and-effusions/global/images/openhpc-x2go-controller-1615436602
+    ood_machine_type        : e2-standard-2
+    ood_image               : projects/tantrums-and-effusions/global/images/openhpc-ood-login-1615435802
+#  [END cluster_yaml]

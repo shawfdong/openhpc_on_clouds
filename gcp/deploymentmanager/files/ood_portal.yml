@@ -1,0 +1,10 @@
+---
+#
+# Portal configuration
+#
+auth:
+  - 'AuthType Basic'
+  - 'AuthName "OpenHPC"'
+  - 'AuthUserFile "/etc/httpd/.htpasswd"'
+  - 'RequestHeader unset Authorization'
+  - 'Require valid-user'
