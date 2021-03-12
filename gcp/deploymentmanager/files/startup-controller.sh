@@ -1,5 +1,5 @@
 #!/bin/bash -xe
-exec > >(tee /var/log/startup.log|logger -t user-data -s 2>/dev/console) 2>&1
+
 sed -i "s|SELINUX=enforcing|SELINUX=permissive|g" /etc/selinux/config
 setenforce 0
 echo "/home *(rw,no_subtree_check,fsid=10,no_root_squash)" >> /etc/exports
