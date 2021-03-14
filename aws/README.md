@@ -16,7 +16,7 @@ In AWS Management Console, navigate to Services -> EC2 -> Key Pairs, then Create
 
 ## Building AMIs using Packer
 
-If you haven't done so, install HarshiCorp Packer. On Mac
+If you haven't done so, install HashiCorp Packer. On Mac
 
 ```
 brew tap hashicorp/tap

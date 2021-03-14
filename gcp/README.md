@@ -1,4 +1,4 @@
-# OpenHPC on AWS
+# OpenHPC on GCP
 
 ## Google Cloud SDK
 
@@ -77,7 +77,7 @@ gcloud deployment-manager deployments create openhpc --config openhpc.yaml
 
 ## Testing the cluster
 
-SSH to x2go-controller
+SSH to ohpc-controller
 
 ```
 gcloud compute ssh ohpc-controller
